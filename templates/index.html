@@ -31,13 +31,15 @@
                         <input type = "range" id = "intensitySlider" class = "slider" min = "1" max = "10" value = "5">
                         <span class = "slider-value" id = "intensityValue">5</span>
                     </div>
+                    <small class = "control-description">Higher values create smoother, more cartoon-like images</small>
                 </div>
                 <div class = "control-item">
                     <label class = "control-label">Edge Thickness</label>
                     <div class = "slider-container">
-                        <input type = "range" id = "edgeSlider" class = "slider" min = "1" max = "10" value = "5">
-                        <span class = "slider-value" id = "edgeValue">3</span>
+                        <input type = "range" id = "edgeSlider" class = "slider" min = "1" max = "10" value = "2">
+                        <span class = "slider-value" id = "edgeValue">2</span>
                     </div>
+                    <small class = "control-description">Controls the thickness of the cartoon outlines</small>
                 </div>
                 <div class = "control-item">
                     <label class = "control-label">Color Levels</label>
@@ -45,6 +47,7 @@
                         <input type = "range" id = "colorSlider" class = "slider" min = "4" max = "32" value = "8">
                         <span class = "slider-value" id = "colorValue">8</span>
                     </div>
+                    <small class = "control-description">Lower values create more simplified, posterized colors</small>
                 </div>
             </div>
         </section>
@@ -58,10 +61,12 @@
             </button>
         </div>
 
-        <div class = "loading" id = "loading">
+        <div class = "loading" id="loading">
             <div class = "loading-spinner"></div>
-            <div class = "loading-text">Processing...</div>
+            <div class = "loading-text">Processing your image...</div>
+            <div class = "loading-subtext">This may take a few seconds</div>
         </div>
+        
         <div id = "statusMessage"></div>
 
         <section class = "results" id = "results">
@@ -74,20 +79,30 @@
                     <h3>Cartoonized</h3>
                     <img id = "cartoonImage" src = "" alt = "Cartoonized">
                 </div>
-                <div class = "download-section">
-                    <button class = "btn btn-primary" id = "donwloadBtn" onclick = "downloadResult()">
-                        Download Cartoonized Image
-                    </button>
-                </div>
+            </div>
+            <div class = "download-section">
+                <button class = "btn btn-primary" id = "downloadBtn" onclick = "downloadResult()">
+                    Download Cartoonized Image
+                </button>
             </div>
         </section>
 
-        <section class="tech-info">
+        <section class = "tech-info">
             <h3>Computer Vision Pipeline</h3>
-            <p><strong>Bilateral Filtering:</strong> Multi-layer smoothing while preserving important edges and details.</p>
-            <p><strong>K-Means Color Quantization:</strong> Intelligent color reduction using clustering algorithms for cartoon-like appearance.</p>
-            <p><strong>Adaptive Edge Detection:</strong> Dynamic threshold-based edge detection with customizable thickness.</p>
-            <p><strong>Backend:</strong> Python + OpenCV + Flask for robust image processing and API handling.</p>
+            <div class = "tech-grid">
+                <div class = "tech-item">
+                    <strong>Bilateral Filtering:</strong> Multi-layer smoothing while preserving important edges and details.
+                </div>
+                <div class = "tech-item">
+                    <strong>K-Means Color Quantization:</strong> Intelligent color reduction using clustering algorithms for cartoon-like appearance.
+                </div>
+                <div class = "tech-item">
+                    <strong>Adaptive Edge Detection:</strong> Dynamic threshold-based edge detection with customizable thickness.
+                </div>
+                <div class = "tech-item">
+                    <strong>Backend:</strong> Python + OpenCV + Flask for robust image processing and API handling.
+                </div>
+            </div>
         </section>
     </div>
     <script src = "script.js"></script>
