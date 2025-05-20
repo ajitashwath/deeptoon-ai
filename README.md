@@ -1,1 +1,1 @@
-# curly-telegram
+# DeepToon AI
