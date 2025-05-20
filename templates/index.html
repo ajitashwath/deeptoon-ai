@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang = "en-US">
+<head>
+    <meta charset = "UTF-8">
+    <meta name = "viewport" content = "width=device-width, initial-scale=1.0">
+    <title>DeepToon AI</title>
+    <link rel = "stylesheet" href = "styles.css">
+</head>
+<body>
+    <div class = "container">
+        <header class = "header">
+            <h1>DeepToon AI</h1>
+            <p>Transform your photos into stunning cartoon artwork using computer vision.</p>
+        </header>
+
+        <section class = "upload-section" id = "uploadSection">
+            <div class = "upload-icon">📸</div>
+            <div class = "upload-text">Drop your image here</div>
+            <div class = "upload-subtext">Or click to browse</div>
+            <button class = "btn" onclick = "document.getElementById('fileInput').click()">
+                Choose Image
+            </button>
+            <input type = "file" id = "fileInput" class = "file-input" accept = "image/*">
+        </section>
+
+        <section class = "controls" id = "controls" style = "display: none;">
+            <div class = "controls-grid">
+                <div class = "control-item">
+                    <label class = "control-label">Cartoon Intensity</label>
+                    <div class = "slider-container">
+                        <input type = "range" id = "intensitySlider" class = "slider" min = "1" max = "10" value = "5">
+                        <span class = "slider-value" id = "intensityValue">5</span>
+                    </div>
+                </div>
+                <div class = "control-item">
+                    <label class = "control-label">Edge Thickness</label>
+                    <div class = "slider-container">
+                        <input type = "range" id = "edgeSlider" class = "slider" min = "1" max = "10" value = "5">
+                        <span class = "slider-value" id = "edgeValue">3</span>
+                    </div>
+                </div>
+                <div class = "control-item">
+                    <label class = "control-label">Color Levels</label>
+                    <div class = "slider-container">
+                        <input type = "range" id = "colorSlider" class = "slider" min = "4" max = "32" value = "8">
+                        <span class = "slider-value" id = "colorValue">8</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class = "action-buttons" id = "actionButtons" style = "display: none;">
+            <button class = "btn btn-primary" id = "processBtn" onclick = "processImage()">
+                Cartoonize
+            </button>
+            <button class = "btn" id = "resetBtn" onclick = "resetAll()">
+                Reset
+            </button>
+        </div>
+
+        <div class = "loading" id = "loading">
+            <div class = "loading-spinner"></div>
+            <div class = "loading-text">Processing...</div>
+        </div>
+        <div id = "statusMessage"></div>
+
+        <section class = "results" id = "results">
+            <div class = "results-grid">
+                <div class = "image-container">
+                    <h3>Original</h3>
+                    <img id = "originalImage" src = "" alt = "Original">
+                </div>
+                <div class = "image-container">
+                    <h3>Cartoonized</h3>
+                    <img id = "cartoonImage" src = "" alt = "Cartoonized">
+                </div>
+                <div class = "download-section">
+                    <button class = "btn btn-primary" id = "donwloadBtn" onclick = "downloadResult()">
+                        Download Cartoonized Image
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section class="tech-info">
+            <h3>Computer Vision Pipeline</h3>
+            <p><strong>Bilateral Filtering:</strong> Multi-layer smoothing while preserving important edges and details.</p>
+            <p><strong>K-Means Color Quantization:</strong> Intelligent color reduction using clustering algorithms for cartoon-like appearance.</p>
+            <p><strong>Adaptive Edge Detection:</strong> Dynamic threshold-based edge detection with customizable thickness.</p>
+            <p><strong>Backend:</strong> Python + OpenCV + Flask for robust image processing and API handling.</p>
+        </section>
+    </div>
+    <script src = "script.js"></script>
+</body>
+</html>
