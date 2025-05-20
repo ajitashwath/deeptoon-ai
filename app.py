@@ -20,10 +20,13 @@ os.makedirs(RESULT_FOLDER, exist_ok = True)
 class CartoonConverter:
     def __init__(self):
         pass
-    
+
     def edge_mask(self, img, line_size, blur_value):
-        gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        blur_value = blur_value if blur_value % 2 == 1 else blur_value + 1
         gray_blur = cv2.medianBlur(gray, blur_value)
+        
+        line_size = line_size if line_size % 2 == 1 else line_size + 1
         edges = cv2.adaptiveThreshold(gray_blur, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, line_size, blur_value)
         return edges
     
@@ -32,6 +35,7 @@ class CartoonConverter:
         data = np.float32(data)
         criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 20, 1.0)
         _, labels, centers = cv2.kmeans(data, k, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
+        
         centers = np.uint8(centers)
         segmented_data = centers[labels.flatten()]
         segmented_image = segmented_data.reshape(img.shape)
@@ -44,26 +48,42 @@ class CartoonConverter:
         return filtered
     
     def cartoonize(self, img, cartoon_intensity = 5, edge_thickness = 2, color_levels = 8):
-        height, width = img.shape[:2]
+        img_bgr = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+        height, width = img_bgr.shape[:2]
         if width > 1000:
             scale = 1000 / width
             new_width = int(width * scale)
             new_height = int(height * scale)
-            img = cv2.resize(img, (new_width, new_height), interpolation = cv2.INTER_AREA)
+            img_bgr = cv2.resize(img_bgr, (new_width, new_height), interpolation = cv2.INTER_AREA)
         
-        num_filters = min(cartoon_intensity, 10)
-        smooth = self.bilateral_filter_stack(img, num_filters = num_filters)
+        num_filters = min(max(cartoon_intensity, 1), 10) 
+        smooth = self.bilateral_filter_stack(
+            img_bgr, 
+            num_filters = num_filters,
+            d = 9,
+            sigma_color = 200,
+            sigma_space = 200
+        )
         
-        quantized = self.color_quantization(smooth, k = color_levels)
+        color_levels = max(4, min(color_levels, 32))  
+        quantized = self.color_quantization(smooth, k=color_levels)
         
-        line_size = 5 + edge_thickness * 2
-        blur_value = 5 + edge_thickness
-        edges = self.edge_mask(img, line_size, blur_value)
+        edge_thickness = max(1, min(edge_thickness, 10))  
+        line_size = 3 + edge_thickness * 2
+        blur_value = 3 + edge_thickness
         
-        edges = cv2.cvtColor(edges, cv2.COLOR_GRAY2RGB)
+        line_size = max(3, line_size if line_size % 2 == 1 else line_size + 1)
+        blur_value = max(3, blur_value if blur_value % 2 == 1 else blur_value + 1)
+        edges = self.edge_mask(img_bgr, line_size, blur_value)
         
+        edges = cv2.cvtColor(edges, cv2.COLOR_GRAY2BGR)
         cartoon = cv2.bitwise_and(quantized, edges)
-        return cartoon
+        
+        # You can uncomment this for different effect:
+        # edges_inv = cv2.bitwise_not(edges)
+        # cartoon = cv2.bitwise_and(quantized, edges_inv)
+        cartoon_rgb = cv2.cvtColor(cartoon, cv2.COLOR_BGR2RGB)
+        return cartoon_rgb
 
 converter = CartoonConverter()
 
@@ -71,17 +91,17 @@ converter = CartoonConverter()
 def index():
     return render_template('index.html')
 
-@app.route('/upload', methods=['POST'])
+@app.route('/upload', methods = ['POST'])
 def upload_image():
     try:
         image_data = request.json['image']
         cartoon_intensity = int(request.json.get('intensity', 5))
         edge_thickness = int(request.json.get('edge_thickness', 2))
         color_levels = int(request.json.get('color_levels', 8))
+
         image_data = image_data.split(',')[1]  
         image_bytes = base64.b64decode(image_data)
         pil_image = Image.open(io.BytesIO(image_bytes))
-        
         if pil_image.mode != 'RGB':
             pil_image = pil_image.convert('RGB')
         
@@ -93,12 +113,10 @@ def upload_image():
             edge_thickness = edge_thickness,
             color_levels = color_levels
         )
-        cartoon_pil = Image.fromarray(cartoon_img)
-    
+        cartoon_pil = Image.fromarray(cartoon_img.astype('uint8'))
         result_id = str(uuid.uuid4())
         result_path = os.path.join(RESULT_FOLDER, f'{result_id}.png')
         cartoon_pil.save(result_path)
-    
         buffered = io.BytesIO()
         cartoon_pil.save(buffered, format = "PNG")
         cartoon_base64 = base64.b64encode(buffered.getvalue()).decode()
@@ -110,6 +128,7 @@ def upload_image():
         })
         
     except Exception as e:
+        print(f"Error processing image: {str(e)}") 
         return jsonify({'success': False, 'error': str(e)})
 
 @app.route('/download/<result_id>')
@@ -117,7 +136,11 @@ def download_result(result_id):
     try:
         result_path = os.path.join(RESULT_FOLDER, f'{result_id}.png')
         if os.path.exists(result_path):
-            return send_file(result_path, as_attachment = True, download_name = f'cartoonized_{datetime.now().strftime("%Y%m%d_%H%M%S")}.png')
+            return send_file(
+                result_path, 
+                as_attachment=True, 
+                download_name=f'cartoonized_{datetime.now().strftime("%Y%m%d_%H%M%S")}.png'
+            )
         else:
             return jsonify({'error': 'File not found'}), 404
     except Exception as e:
