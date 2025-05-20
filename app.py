@@ -4,10 +4,12 @@ import cv2
 import numpy as np
 import base64
 import io
-from PIL import Image
 import os
 from datetime import datetime
 import uuid
+from PIL import Image, ImageEnhance, ImageFilter
+import skimage
+from skimage import filters, segmentation, color
 
 app = Flask(__name__)
 CORS(app)
@@ -84,6 +86,71 @@ class CartoonConverter:
         # cartoon = cv2.bitwise_and(quantized, edges_inv)
         cartoon_rgb = cv2.cvtColor(cartoon, cv2.COLOR_BGR2RGB)
         return cartoon_rgb
+    
+class AdvancedFilters:    
+    def __init__(self):
+        pass
+    
+    def oil_painting_effect(self, img, radius = 7, levels = 20):
+        if isinstance(img, Image.Image):
+            img = np.array(img)
+
+        oil_img = cv2.xphoto.oilPainting(img, radius, levels)
+        return oil_img
+    
+    def watercolor_effect(self, img, sigma_s = 50, sigma_r = 0.4):
+        if isinstance(img, Image.Image):
+            img = np.array(img)
+        smooth = cv2.edgePreservingFilter(img, flags = 1, sigma_s = sigma_s, sigma_r = sigma_r)
+        watercolor = cv2.bilateralFilter(smooth, 15, 80, 80)
+        return watercolor
+    
+    def pencil_sketch(self, img, sigma_s = 60, sigma_r = 0.07, shade_factor = 0.02):
+        if isinstance(img, Image.Image):
+            img = np.array(img)
+        
+        gray, colored = cv2.pencilSketch(img, sigma_s = sigma_s, sigma_r = sigma_r, shade_factor = shade_factor)
+        return gray, colored
+    
+    def anime_style(self, img, num_downsamples = 2, num_bilateral = 7):
+        if isinstance(img, Image.Image):
+            img = np.array(img)
+        
+        height, width = img.shape[:2]
+        for _ in range(num_downsamples):
+            img = cv2.pyrDown(img)
+        
+        for _ in range(num_bilateral):
+            img = cv2.bilateralFilter(img, 9, 200, 200)
+        
+        for _ in range(num_downsamples):
+            img = cv2.pyrUp(img)
+        
+        img = cv2.resize(img, (width, height))
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        edges = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 9, 9)
+        edges = cv2.cvtColor(edges, cv2.COLOR_GRAY2BGR)
+        anime = cv2.bitwise_and(img, edges)
+        return anime
+    
+    def pop_art_effect(self, img, k = 4):
+        if isinstance(img, Image.Image):
+            img = np.array(img)
+        
+        data = img.reshape((-1, 3)).astype(np.float32)
+        criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 20, 1.0)
+        _, labels, centers = cv2.kmeans(data, k, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
+        
+        centers = np.uint8(centers)
+        segmented_data = centers[labels.flatten()]
+        pop_art = segmented_data.reshape(img.shape)
+        
+        # Increase saturation
+        pop_art_pil = Image.fromarray(pop_art)
+        enhancer = ImageEnhance.Color(pop_art_pil)
+        pop_art_pil = enhancer.enhance(2.0) 
+        return np.array(pop_art_pil)
+
 
 converter = CartoonConverter()
 
