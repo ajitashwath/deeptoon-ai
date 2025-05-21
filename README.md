@@ -9,7 +9,6 @@ Transform your photos into stunning cartoon artwork using advanced computer visi
 - **Drag & Drop Interface**: User-friendly web interface with drag-and-drop image upload
 - **Multiple Output Options**: Download high-quality cartoonized images instantly
 - **Responsive Design**: Works seamlessly on desktop and mobile devices
-- **Real-time Preview**: See your adjustments instantly before processing
 
 ##  Quick Start
 
