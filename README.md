@@ -2,6 +2,8 @@
 
 Transform your photos into stunning cartoon artwork using advanced computer vision techniques. DeepToon AI is a web-based application that applies sophisticated image processing algorithms to create cartoon-style images from regular photographs.
 
+![DeepToon](https://i.ibb.co/9kC1Sw7Q/Screenshot-2025-06-29-212703.png)
+
 ## Features
 
 - **Smart Cartoonization**: Advanced bilateral filtering and color quantization for realistic cartoon effects
